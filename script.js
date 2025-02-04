@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // Fetch the API key first
+    // Fetch the API key from Netlify Function
     fetch("/.netlify/functions/get-api-key")
         .then(response => {
             if (!response.ok) throw new Error("Failed to fetch API key");
@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const API_KEY = config.API_KEY;
             if (!API_KEY) throw new Error("API key is missing");
 
-            // Attach event listeners or initialize the app with the API key
-            initializeApp(API_KEY);
+            // Initialize the app with the API key
+            initApp(API_KEY);
         })
         .catch(error => {
             console.error("Error loading API key:", error);
@@ -18,20 +18,31 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 });
 
-function initializeApp(API_KEY) {
-    // Attach event listeners or call fetchGames directly
-    document.getElementById("filter-button").addEventListener("click", () => fetchGames(API_KEY));
-    fetchGames(API_KEY); // Initial fetch
+// Initialize the app with the API key
+function initApp(API_KEY) {
+    window.API_KEY = API_KEY; // Store the API key in a global variable
+
+    // Attach event listeners
+    document.getElementById("filter-button").addEventListener("click", fetchGames);
+    fetchGames(); // Initial fetch
 }
 
-function fetchGames(API_KEY) {
+async function fetchGames() {
+    if (!window.API_KEY) {
+        console.error("API key is not available.");
+        return;
+    }
+
     const platform = document.getElementById("platform").value;
     const category = document.getElementById("category").value;
     const sort = document.getElementById("sort").value;
 
-    let url = "https://free-to-play-games-database.p.rapidapi.com/api/games";
+    // Show loading spinner (add a loading element to your HTML if needed)
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("games-container").innerHTML = "";
 
-    // Apply filters dynamically
+    // Build the API URL with filters
+    let url = "https://free-to-play-games-database.p.rapidapi.com/api/games";
     const params = [];
     if (platform !== "all") params.push(`platform=${platform}`);
     if (category) params.push(`category=${category}`);
@@ -43,22 +54,28 @@ function fetchGames(API_KEY) {
 
     console.log("Fetching data from:", url); // Debugging log
 
-    fetch(url, {
-        method: "GET",
-        headers: {
-            "x-rapidapi-host": "free-to-play-games-database.p.rapidapi.com",
-            "x-rapidapi-key": API_KEY
-        }
-    })
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            return response.json();
-        })
-        .then(data => displayGames(data))
-        .catch(error => {
-            console.error("Error fetching data:", error);
-            document.getElementById("games-container").innerHTML = `<p style="color:red;">Failed to fetch data. Try again later.</p>`;
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "x-rapidapi-host": "free-to-play-games-database.p.rapidapi.com",
+                "x-rapidapi-key": window.API_KEY,
+            },
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        displayGames(data);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        document.getElementById("games-container").innerHTML = `<p style="color:red;">Failed to fetch data. Try again later.</p>`;
+    } finally {
+        // Hide loading spinner
+        document.getElementById("loading").style.display = "none";
+    }
 }
 
 function displayGames(games) {
@@ -79,7 +96,7 @@ function displayGames(games) {
             <h3>${game.title}</h3>
             <p><strong>${game.genre} | ${game.platform}</strong></p>
             <p class="short-description">${game.short_description}</p>
-            <button onclick="getSystemRequirements(${game.id}, '${API_KEY}')">System Requirements</button>
+            <button onclick="getSystemRequirements(${game.id})">System Requirements</button>
             <a href="${game.game_url}" target="_blank">
                 <button class="play-button">Play Now</button>
             </a>
@@ -89,37 +106,43 @@ function displayGames(games) {
     });
 }
 
-function getSystemRequirements(gameId, API_KEY) {
+async function getSystemRequirements(gameId) {
+    if (!window.API_KEY) {
+        console.error("API key is not available.");
+        return;
+    }
+
     const url = `https://free-to-play-games-database.p.rapidapi.com/api/game?id=${gameId}`;
 
-    fetch(url, {
-        method: "GET",
-        headers: {
-            "x-rapidapi-host": "free-to-play-games-database.p.rapidapi.com",
-            "x-rapidapi-key": API_KEY
-        }
-    })
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            return response.json();
-        })
-        .then(game => {
-            if (game.minimum_system_requirements) {
-                const reqs = game.minimum_system_requirements;
-                alert(
-                    `🔧 System Requirements for ${game.title}:\n\n` +
-                    `🖥️ OS: ${reqs.os}\n` +
-                    `📥 Storage: ${reqs.storage}\n` +
-                    `💾 RAM: ${reqs.memory}\n` +
-                    `🎮 GPU: ${reqs.graphics}\n` +
-                    `⚡ CPU: ${reqs.processor}`
-                );
-            } else {
-                alert(`No system requirements available for ${game.title}.`);
-            }
-        })
-        .catch(error => {
-            console.error("Error fetching system requirements:", error);
-            alert("Failed to load system requirements.");
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "x-rapidapi-host": "free-to-play-games-database.p.rapidapi.com",
+                "x-rapidapi-key": window.API_KEY,
+            },
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const game = await response.json();
+        if (game.minimum_system_requirements) {
+            const reqs = game.minimum_system_requirements;
+            alert(
+                `🔧 System Requirements for ${game.title}:\n\n` +
+                `🖥️ OS: ${reqs.os}\n` +
+                `📥 Storage: ${reqs.storage}\n` +
+                `💾 RAM: ${reqs.memory}\n` +
+                `🎮 GPU: ${reqs.graphics}\n` +
+                `⚡ CPU: ${reqs.processor}`
+            );
+        } else {
+            alert(`No system requirements available for ${game.title}.`);
+        }
+    } catch (error) {
+        console.error("Error fetching system requirements:", error);
+        alert("Failed to load system requirements.");
+    }
 }
