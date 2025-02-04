@@ -1,12 +1,28 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
+    // Fetch the API key first
     fetch("/.netlify/functions/get-api-key")
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error("Failed to fetch API key");
+            return response.json();
+        })
         .then(config => {
             const API_KEY = config.API_KEY;
-            fetchGames(API_KEY);
+            if (!API_KEY) throw new Error("API key is missing");
+
+            // Attach event listeners or initialize the app with the API key
+            initializeApp(API_KEY);
         })
-        .catch(error => console.error("Error loading API key:", error));
+        .catch(error => {
+            console.error("Error loading API key:", error);
+            document.getElementById("games-container").innerHTML = `<p style="color:red;">Failed to load API key. Please try again later.</p>`;
+        });
 });
+
+function initializeApp(API_KEY) {
+    // Attach event listeners or call fetchGames directly
+    document.getElementById("filter-button").addEventListener("click", () => fetchGames(API_KEY));
+    fetchGames(API_KEY); // Initial fetch
+}
 
 function fetchGames(API_KEY) {
     const platform = document.getElementById("platform").value;
@@ -34,15 +50,15 @@ function fetchGames(API_KEY) {
             "x-rapidapi-key": API_KEY
         }
     })
-    .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        return response.json();
-    })
-    .then(data => displayGames(data))
-    .catch(error => {
-        console.error("Error fetching data:", error);
-        document.getElementById("games-container").innerHTML = `<p style="color:red;">Failed to fetch data. Try again later.</p>`;
-    });
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => displayGames(data))
+        .catch(error => {
+            console.error("Error fetching data:", error);
+            document.getElementById("games-container").innerHTML = `<p style="color:red;">Failed to fetch data. Try again later.</p>`;
+        });
 }
 
 function displayGames(games) {
@@ -83,27 +99,27 @@ function getSystemRequirements(gameId, API_KEY) {
             "x-rapidapi-key": API_KEY
         }
     })
-    .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        return response.json();
-    })
-    .then(game => {
-        if (game.minimum_system_requirements) {
-            const reqs = game.minimum_system_requirements;
-            alert(
-                `🔧 System Requirements for ${game.title}:\n\n` +
-                `🖥️ OS: ${reqs.os}\n` +
-                `📥 Storage: ${reqs.storage}\n` +
-                `💾 RAM: ${reqs.memory}\n` +
-                `🎮 GPU: ${reqs.graphics}\n` +
-                `⚡ CPU: ${reqs.processor}`
-            );
-        } else {
-            alert(`No system requirements available for ${game.title}.`);
-        }
-    })
-    .catch(error => {
-        console.error("Error fetching system requirements:", error);
-        alert("Failed to load system requirements.");
-    });
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            return response.json();
+        })
+        .then(game => {
+            if (game.minimum_system_requirements) {
+                const reqs = game.minimum_system_requirements;
+                alert(
+                    `🔧 System Requirements for ${game.title}:\n\n` +
+                    `🖥️ OS: ${reqs.os}\n` +
+                    `📥 Storage: ${reqs.storage}\n` +
+                    `💾 RAM: ${reqs.memory}\n` +
+                    `🎮 GPU: ${reqs.graphics}\n` +
+                    `⚡ CPU: ${reqs.processor}`
+                );
+            } else {
+                alert(`No system requirements available for ${game.title}.`);
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching system requirements:", error);
+            alert("Failed to load system requirements.");
+        });
 }
