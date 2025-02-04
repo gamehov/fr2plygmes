@@ -1,10 +1,9 @@
-// This function will return the API key stored in the environment variables
-exports.handler = async function(event, context) {
+// functions/get-api-key.js
+exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       body: JSON.stringify({
-        API_KEY: process.env.FREETOGAME_API_KEY // Set this environment variable in Netlify
+        API_KEY: process.env.FREETOGAME_API_KEY, // Ensure this matches the environment variable name
       }),
     };
   };
-  
