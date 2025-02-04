@@ -22,9 +22,16 @@ document.addEventListener("DOMContentLoaded", function () {
 function initApp(API_KEY) {
     window.API_KEY = API_KEY; // Store the API key in a global variable
 
-    // Attach event listeners
-    document.getElementById("filter-button").addEventListener("click", fetchGames);
-    fetchGames(); // Initial fetch
+    // Attach event listener to the filter button
+    const filterButton = document.getElementById("filter-button");
+    if (filterButton) {
+        filterButton.addEventListener("click", fetchGames);
+    } else {
+        console.error("Filter button not found in the DOM.");
+    }
+
+    // Initial fetch of games
+    fetchGames();
 }
 
 async function fetchGames() {
@@ -37,9 +44,13 @@ async function fetchGames() {
     const category = document.getElementById("category").value;
     const sort = document.getElementById("sort").value;
 
-    // Show loading spinner (add a loading element to your HTML if needed)
-    document.getElementById("loading").style.display = "block";
-    document.getElementById("games-container").innerHTML = "";
+    // Show loading spinner
+    const loadingElement = document.getElementById("loading");
+    if (loadingElement) loadingElement.style.display = "block";
+
+    // Clear the games container
+    const gamesContainer = document.getElementById("games-container");
+    if (gamesContainer) gamesContainer.innerHTML = "";
 
     // Build the API URL with filters
     let url = "https://free-to-play-games-database.p.rapidapi.com/api/games";
@@ -71,15 +82,20 @@ async function fetchGames() {
         displayGames(data);
     } catch (error) {
         console.error("Error fetching data:", error);
-        document.getElementById("games-container").innerHTML = `<p style="color:red;">Failed to fetch data. Try again later.</p>`;
+        if (gamesContainer) gamesContainer.innerHTML = `<p style="color:red;">Failed to fetch data. Try again later.</p>`;
     } finally {
         // Hide loading spinner
-        document.getElementById("loading").style.display = "none";
+        if (loadingElement) loadingElement.style.display = "none";
     }
 }
 
 function displayGames(games) {
     const container = document.getElementById("games-container");
+    if (!container) {
+        console.error("Games container not found in the DOM.");
+        return;
+    }
+
     container.innerHTML = "";
 
     if (games.length === 0) {
