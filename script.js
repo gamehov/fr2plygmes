@@ -1,17 +1,12 @@
-document.addEventListener("DOMContentLoaded", fetchAPIKey);
-
-function fetchAPIKey() {
+document.addEventListener("DOMContentLoaded", function() {
     fetch("/.netlify/functions/get-api-key")
         .then(response => response.json())
         .then(config => {
             const API_KEY = config.API_KEY;
-            fetchGames(API_KEY); // Pass the API key to fetchGames
+            fetchGames(API_KEY);
         })
-        .catch(error => {
-            console.error("Error loading API key:", error);
-            alert("Failed to load API key.");
-        });
-}
+        .catch(error => console.error("Error loading API key:", error));
+});
 
 function fetchGames(API_KEY) {
     const platform = document.getElementById("platform").value;
@@ -68,7 +63,7 @@ function displayGames(games) {
             <h3>${game.title}</h3>
             <p><strong>${game.genre} | ${game.platform}</strong></p>
             <p class="short-description">${game.short_description}</p>
-            <button onclick="getSystemRequirements(${game.id})">System Requirements</button>
+            <button onclick="getSystemRequirements(${game.id}, '${API_KEY}')">System Requirements</button>
             <a href="${game.game_url}" target="_blank">
                 <button class="play-button">Play Now</button>
             </a>
@@ -78,7 +73,7 @@ function displayGames(games) {
     });
 }
 
-function getSystemRequirements(gameId) {
+function getSystemRequirements(gameId, API_KEY) {
     const url = `https://free-to-play-games-database.p.rapidapi.com/api/game?id=${gameId}`;
 
     fetch(url, {
