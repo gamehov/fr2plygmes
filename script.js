@@ -1,17 +1,16 @@
 document.addEventListener("DOMContentLoaded", fetchAPIKey);
 
 function fetchAPIKey() {
-  // Fetch the API key from the Netlify function
-  fetch("/.netlify/functions/get-api-key")
-    .then(response => response.json())
-    .then(config => {
-      const API_KEY = config.API_KEY;
-      fetchGames(API_KEY); // Pass the API key to fetchGames
-    })
-    .catch(error => {
-      console.error("Error loading API key:", error);
-      document.getElementById("games-container").innerHTML = `<p style="color:red;">Failed to load API key. Please try again later.</p>`;
-    });
+    fetch("/.netlify/functions/get-api-key")
+        .then(response => response.json())
+        .then(config => {
+            const API_KEY = config.API_KEY;
+            fetchGames(API_KEY); // Pass the API key to fetchGames
+        })
+        .catch(error => {
+            console.error("Error loading API key:", error);
+            alert("Failed to load API key.");
+        });
 }
 
 function fetchGames(API_KEY) {
@@ -37,7 +36,7 @@ function fetchGames(API_KEY) {
         method: "GET",
         headers: {
             "x-rapidapi-host": "free-to-play-games-database.p.rapidapi.com",
-            "x-rapidapi-key": API_KEY // Use the dynamic API key
+            "x-rapidapi-key": API_KEY
         }
     })
     .then(response => {
@@ -86,7 +85,7 @@ function getSystemRequirements(gameId) {
         method: "GET",
         headers: {
             "x-rapidapi-host": "free-to-play-games-database.p.rapidapi.com",
-            "x-rapidapi-key": process.env.FREETOGAME_API_KEY // Use dynamic API key
+            "x-rapidapi-key": API_KEY
         }
     })
     .then(response => {
