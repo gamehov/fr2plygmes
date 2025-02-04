@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeToGame App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Free-To-Play Games</h1>
+    
+    <div class="filters">
+        <select id="platform">
+            <option value="all">All Platforms</option>
+            <option value="pc">PC</option>
+            <option value="browser">Browser</option>
+        </select>
+
+        <select id="category">
+            <option value="">All Categories</option>
+            <option value="mmorpg">MMORPG</option>
+            <option value="shooter">Shooter</option>
+            <option value="strategy">Strategy</option>
+            <option value="moba">MOBA</option>
+        </select>
+
+        <select id="sort">
+            <option value="relevance">Relevance</option>
+            <option value="popularity">Popularity</option>
+            <option value="release-date">Release Date</option>
+            <option value="alphabetical">Alphabetical</option>
+        </select>
+
+        <button onclick="fetchGames()">Search</button>
+    </div>
+
+    <div id="games-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
